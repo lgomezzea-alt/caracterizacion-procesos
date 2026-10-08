@@ -1,0 +1,6 @@
+{
+  "name": "GestorProcesos - Caracterización y Ciclo Deming ISO",
+  "description": "Plataforma guiada paso a paso para la caracterización de procesos organizacionales, contexto empresarial, flujograma y matriz PHVA según normas técnicas.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
