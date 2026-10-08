@@ -52,6 +52,7 @@ export default function App() {
   const [isProcessMapOpen, setIsProcessMapOpen] = useState(false);
   const [isAssistantHelpOpen, setIsAssistantHelpOpen] = useState(false);
   const [isJobManualOpen, setIsJobManualOpen] = useState(false);
+  const [showSignaturesDrawer, setShowSignaturesDrawer] = useState(false);
 
   // Auto-sync storage
   useEffect(() => {
@@ -353,6 +354,53 @@ export default function App() {
     handleUpdateActiveProcess({ activities: [...acts, newAct] });
   };
 
+  const handleStep4QuickStage = (stage: DemingStage) => {
+    const acts = activeProcess.activities || [];
+    const stageTemplates: Record<DemingStage, { name: string; supplier: string; inputs: string; outputs: string; customer: string }> = {
+      Planear: {
+        name: `Planificar recursos, cronograma y parámetros de control para ${activeProcess.name}`,
+        supplier: 'Dirección Estratégica / Proceso de Planeación',
+        inputs: 'Directrices estratégicas, presupuesto y requisitos del cliente',
+        outputs: 'Plan operativo y cronograma de trabajo aprobado',
+        customer: 'Equipo ejecutor del proceso'
+      },
+      Hacer: {
+        name: `Ejecutar la operación y prestación conforme de ${activeProcess.productOrService || activeProcess.name}`,
+        supplier: 'Proveedores / Almacén / Solicitantes',
+        inputs: 'Plan operativo, especificaciones técnicas y recursos asignados',
+        outputs: 'Producto o servicio elaborado conforme a estándares',
+        customer: 'Clientes del proceso'
+      },
+      Verificar: {
+        name: `Verificar especificaciones de calidad, evaluar indicadores y auditar el proceso`,
+        supplier: 'Equipo operativo del proceso',
+        inputs: 'Registros de ejecución y productos generados',
+        outputs: 'Informe de gestión, cálculo de KPIs y reporte de conformidades',
+        customer: 'Líder del Proceso / Comité de Calidad'
+      },
+      Actuar: {
+        name: `Implementar acciones correctivas y proyectos de mejora continua en ${activeProcess.name}`,
+        supplier: 'Comité de Calidad / Auditorías Internas',
+        inputs: 'Informe de desviaciones, quejas o no conformidades',
+        outputs: 'Planes de acción ejecutados y procedimientos actualizados',
+        customer: 'Todos los procesos de la empresa'
+      }
+    };
+    const tmpl = stageTemplates[stage];
+    const newAct: ProcessActivity = {
+      id: `act-${Date.now()}`,
+      number: acts.length + 1,
+      stage,
+      name: tmpl.name,
+      supplier: tmpl.supplier,
+      inputs: tmpl.inputs,
+      outputs: tmpl.outputs,
+      customer: tmpl.customer,
+      responsibleRole: activeProcess.leaderRole || 'Líder del Proceso'
+    };
+    handleUpdateActiveProcess({ activities: [...acts, newAct] });
+  };
+
   const handleStep5AddControl = () => {
     const ctrls = activeProcess.measurementPlan || [];
     const newControl: MeasurementControl = {
@@ -366,6 +414,59 @@ export default function App() {
       contingencyAction: 'Rechazar entrega, emitir no conformidad y corregir inmediatamente'
     };
     handleUpdateActiveProcess({ measurementPlan: [...ctrls, newControl] });
+  };
+
+  const handleStep5GenerateControls = () => {
+    const ctrls = activeProcess.measurementPlan || [];
+    const existingActs = new Set(ctrls.map(c => c.activityName.trim().toLowerCase()));
+    const newControls: MeasurementControl[] = [...ctrls];
+    const acts = activeProcess.activities || [];
+    const defaultFormat = activeProcess.requiredFormats?.[0] || 'FOR-01 Registro de Control y Verificación';
+
+    let addedCount = 0;
+    acts.forEach((act) => {
+      if (!existingActs.has(act.name.trim().toLowerCase())) {
+        let variable = 'Conformidad técnica y oportunidad de la entrega';
+        let spec = '100% de cumplimiento con las especificaciones del cliente y normativas';
+        let accept = 'Aprobación del registro de verificación sin no conformidades mayores';
+        let conting = 'Suspender entrega, emitir no conformidad e implementar acción correctiva inmediata';
+
+        if (act.stage === 'Planear') {
+          variable = 'Oportunidad y completitud del plan operativo y asignación de recursos';
+          spec = 'Aprobación de la planificación previa al inicio de operaciones';
+          accept = 'Plan formalmente aprobado y recursos garantizados';
+          conting = 'Reprogramar actividades y solicitar asignación prioritaria de recursos';
+        } else if (act.stage === 'Verificar') {
+          variable = 'Evaluación de conformidad de indicadores y auditoría interna';
+          spec = 'Meta de eficacia ≥ 95% y cero desviaciones críticas';
+          accept = 'Resultado conforme al indicador establecido';
+          conting = 'Apertura inmediata de informe de desviación y plan de acción de choque';
+        } else if (act.stage === 'Actuar') {
+          variable = 'Cierre efectivo de acciones de mejora y lecciones aprendidas';
+          spec = '100% de acciones de mejora cerradas dentro del plazo';
+          accept = 'Verificación de eficacia aprobada por el responsable';
+          conting = 'Revisar causa raíz y actualizar procedimiento operativo';
+        }
+
+        newControls.push({
+          id: `ctrl-${Date.now()}-${act.number}`,
+          activityId: act.id,
+          activityName: act.name,
+          variableToControl: variable,
+          specification: spec,
+          acceptanceCriteria: accept,
+          inspectorRole: act.responsibleRole || activeProcess.leaderRole || 'Líder del Proceso',
+          inspectionRecord: defaultFormat,
+          contingencyAction: conting
+        });
+        existingActs.add(act.name.trim().toLowerCase());
+        addedCount++;
+      }
+    });
+
+    if (addedCount > 0) {
+      handleUpdateActiveProcess({ measurementPlan: newControls });
+    }
   };
 
   const handleStep5AddIndicator = () => {
@@ -489,8 +590,12 @@ export default function App() {
         onStep1SuggestObjective={handleStep1SuggestObjective}
         onStep2AddNorms={handleStep2AddNorms}
         onStep4AddActivity={handleStep4AddActivity}
+        onStep4QuickStage={handleStep4QuickStage}
         onStep5AddControl={handleStep5AddControl}
         onStep5AddIndicator={handleStep5AddIndicator}
+        onStep5GenerateControls={handleStep5GenerateControls}
+        onStep6ToggleSignatures={() => setShowSignaturesDrawer(prev => !prev)}
+        isSignaturesDrawerOpen={showSignaturesDrawer}
         onStep6ExportJSON={handleStep6ExportJSON}
         onStep6ExportCSV={handleStep6ExportCSV}
         flowchartView={flowchartView}
@@ -569,6 +674,8 @@ export default function App() {
             process={activeProcess}
             onChange={handleUpdateActiveProcess}
             onPrev={() => setCurrentStep(5)}
+            showSignaturesDrawer={showSignaturesDrawer}
+            onToggleSignaturesDrawer={() => setShowSignaturesDrawer(prev => !prev)}
           />
         )}
       </main>

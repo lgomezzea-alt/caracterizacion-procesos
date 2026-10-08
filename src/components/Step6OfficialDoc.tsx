@@ -18,16 +18,29 @@ interface Step6OfficialDocProps {
   process: ProcessCharacterization;
   onChange: (updated: Partial<ProcessCharacterization>) => void;
   onPrev: () => void;
+  showSignaturesDrawer?: boolean;
+  onToggleSignaturesDrawer?: () => void;
 }
 
 export const Step6OfficialDoc: React.FC<Step6OfficialDocProps> = ({
   orgContext,
   process,
   onChange,
-  onPrev
+  onPrev,
+  showSignaturesDrawer,
+  onToggleSignaturesDrawer
 }) => {
   const [copied, setCopied] = useState(false);
-  const [editSignatures, setEditSignatures] = useState(false);
+  const [internalEditSignatures, setInternalEditSignatures] = useState(false);
+
+  const editSignatures = showSignaturesDrawer !== undefined ? showSignaturesDrawer : internalEditSignatures;
+  const handleToggleSignatures = () => {
+    if (onToggleSignaturesDrawer) {
+      onToggleSignaturesDrawer();
+    } else {
+      setInternalEditSignatures(prev => !prev);
+    }
+  };
 
   const handlePrint = () => {
     window.print();
@@ -168,7 +181,7 @@ ${process.activities.map(a => `${a.number}. [${a.stage}] ${a.name} (Resp: ${a.re
         <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
-            onClick={() => setEditSignatures(!editSignatures)}
+            onClick={handleToggleSignatures}
             className="inline-flex items-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition"
           >
             <PenTool className="w-4 h-4 text-slate-600" />
@@ -543,6 +556,73 @@ ${process.activities.map(a => `${a.number}. [${a.stage}] ${a.name} (Resp: ${a.re
               </ol>
             </div>
 
+          </div>
+
+          {/* SÍNTESIS VISUAL DEL FLUJOGRAMA Y CICLO PHVA DEL PROCESO */}
+          <div className="border-b border-slate-900 bg-slate-50/80 p-2.5 text-xs">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-2">
+              <span className="font-extrabold text-slate-900 uppercase tracking-wide text-[10px] flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-blue-600 inline-block"></span>
+                <span>Diagrama de Flujo del Proceso (Secuencia del Ciclo PHVA - ISO 9001:2015)</span>
+              </span>
+              <span className="text-[10px] text-slate-500 font-mono">
+                {process.activities.length} actividades • 4 fases de mejora continua
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-[10px]">
+              {/* PLANEAR */}
+              <div className="bg-emerald-50 border border-emerald-300 rounded p-1.5 space-y-0.5">
+                <div className="flex items-center justify-between font-bold text-emerald-900 text-[10px]">
+                  <span>1. PLANEAR</span>
+                  <span className="bg-emerald-200 text-emerald-800 px-1 rounded text-[9px] font-mono">
+                    {process.activities.filter(a => a.stage === 'Planear').length} acts
+                  </span>
+                </div>
+                <div className="text-slate-700 truncate text-[10px]" title={process.activities.find(a => a.stage === 'Planear')?.name || 'Planificación operativa'}>
+                  {process.activities.find(a => a.stage === 'Planear')?.name || 'Planificación de recursos y metas'}
+                </div>
+              </div>
+
+              {/* HACER */}
+              <div className="bg-blue-50 border border-blue-300 rounded p-1.5 space-y-0.5">
+                <div className="flex items-center justify-between font-bold text-blue-900 text-[10px]">
+                  <span>2. HACER</span>
+                  <span className="bg-blue-200 text-blue-800 px-1 rounded text-[9px] font-mono">
+                    {process.activities.filter(a => a.stage === 'Hacer').length} acts
+                  </span>
+                </div>
+                <div className="text-slate-700 truncate text-[10px]" title={process.activities.find(a => a.stage === 'Hacer')?.name || 'Ejecución y transformación'}>
+                  {process.activities.find(a => a.stage === 'Hacer')?.name || 'Ejecución y prestación del servicio'}
+                </div>
+              </div>
+
+              {/* VERIFICAR */}
+              <div className="bg-amber-50 border border-amber-300 rounded p-1.5 space-y-0.5">
+                <div className="flex items-center justify-between font-bold text-amber-900 text-[10px]">
+                  <span>3. VERIFICAR</span>
+                  <span className="bg-amber-200 text-amber-800 px-1 rounded text-[9px] font-mono">
+                    {process.activities.filter(a => a.stage === 'Verificar').length} acts
+                  </span>
+                </div>
+                <div className="text-slate-700 truncate text-[10px]" title={process.activities.find(a => a.stage === 'Verificar')?.name || 'Control y medición'}>
+                  {process.activities.find(a => a.stage === 'Verificar')?.name || 'Medición de indicadores y control'}
+                </div>
+              </div>
+
+              {/* ACTUAR */}
+              <div className="bg-purple-50 border border-purple-300 rounded p-1.5 space-y-0.5">
+                <div className="flex items-center justify-between font-bold text-purple-900 text-[10px]">
+                  <span>4. ACTUAR</span>
+                  <span className="bg-purple-200 text-purple-800 px-1 rounded text-[9px] font-mono">
+                    {process.activities.filter(a => a.stage === 'Actuar').length} acts
+                  </span>
+                </div>
+                <div className="text-slate-700 truncate text-[10px]" title={process.activities.find(a => a.stage === 'Actuar')?.name || 'Mejora continua'}>
+                  {process.activities.find(a => a.stage === 'Actuar')?.name || 'Acciones de mejora y estandarización'}
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Tabla SIPOC de Actividades Oficial */}

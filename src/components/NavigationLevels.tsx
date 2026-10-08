@@ -24,7 +24,8 @@ import {
   Scale,
   Briefcase,
   FileSpreadsheet,
-  Upload
+  Upload,
+  PenTool
 } from 'lucide-react';
 import { OrgContext, ProcessCharacterization, ProcessCategory, DemingStage } from '../types/process';
 
@@ -56,9 +57,11 @@ export interface NavigationLevelsProps {
   onStep4QuickStage?: (stage: DemingStage) => void;
   onStep5AddControl?: () => void;
   onStep5AddIndicator?: () => void;
+  onStep5GenerateControls?: () => void;
   onStep2AddNorms?: () => void;
   onStep1SuggestObjective?: (type: string) => void;
   onStep6ToggleSignatures?: () => void;
+  isSignaturesDrawerOpen?: boolean;
   onStep6ExportJSON?: () => void;
   onStep6ExportCSV?: () => void;
   flowchartView?: 'swimlanes' | 'sequential';
@@ -90,9 +93,11 @@ export const NavigationLevels: React.FC<NavigationLevelsProps> = ({
   onStep4QuickStage,
   onStep5AddControl,
   onStep5AddIndicator,
+  onStep5GenerateControls,
   onStep2AddNorms,
   onStep1SuggestObjective,
   onStep6ToggleSignatures,
+  isSignaturesDrawerOpen = false,
   onStep6ExportJSON,
   onStep6ExportCSV,
   flowchartView = 'swimlanes',
@@ -435,39 +440,94 @@ export const NavigationLevels: React.FC<NavigationLevelsProps> = ({
               </div>
             )}
 
-            {/* Si está en Paso 4: Mapeo PHVA (Nueva actividad) */}
-            {currentStep === 4 && onStep4AddActivity && (
+            {/* Si está en Paso 4: Mapeo PHVA (Nueva actividad y accesos rápidos PHVA) */}
+            {currentStep === 4 && (
               <div className="flex items-center gap-1.5 text-xs">
-                <button
-                  type="button"
-                  onClick={onStep4AddActivity}
-                  className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[11px] font-bold transition shadow-2xs"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>Nueva Actividad</span>
-                </button>
+                {onStep4AddActivity && (
+                  <button
+                    type="button"
+                    onClick={onStep4AddActivity}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[11px] font-bold transition shadow-2xs"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Nueva Actividad</span>
+                  </button>
+                )}
+
+                {onStep4QuickStage && (
+                  <div className="flex items-center gap-1 border-l border-slate-200 pl-1.5 ml-0.5">
+                    <span className="text-[10px] text-slate-400 font-bold uppercase hidden sm:inline">Rápido:</span>
+                    <button
+                      type="button"
+                      onClick={() => onStep4QuickStage('Planear')}
+                      className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 hover:bg-emerald-200 transition"
+                      title="Agregar actividad para Planear"
+                    >
+                      +P
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onStep4QuickStage('Hacer')}
+                      className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800 hover:bg-blue-200 transition"
+                      title="Agregar actividad para Hacer"
+                    >
+                      +H
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onStep4QuickStage('Verificar')}
+                      className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 hover:bg-amber-200 transition"
+                      title="Agregar actividad para Verificar"
+                    >
+                      +V
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onStep4QuickStage('Actuar')}
+                      className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-800 hover:bg-purple-200 transition"
+                      title="Agregar actividad para Actuar"
+                    >
+                      +A
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 
             {/* Si está en Paso 5: Controles e Indicadores */}
-            {currentStep === 5 && onStep5AddControl && onStep5AddIndicator && (
+            {currentStep === 5 && (
               <div className="flex items-center gap-1.5 text-xs">
-                <button
-                  type="button"
-                  onClick={onStep5AddControl}
-                  className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-[11px] font-bold transition shadow-2xs"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>Nuevo Control</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={onStep5AddIndicator}
-                  className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[11px] font-bold transition shadow-2xs"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>Nuevo Indicador</span>
-                </button>
+                {onStep5GenerateControls && (
+                  <button
+                    type="button"
+                    onClick={onStep5GenerateControls}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg text-[11px] font-bold transition shadow-2xs"
+                    title="Generar controles de calidad automáticamente basados en las actividades del Mapeo PHVA"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                    <span>Autogenerar desde PHVA</span>
+                  </button>
+                )}
+                {onStep5AddControl && (
+                  <button
+                    type="button"
+                    onClick={onStep5AddControl}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-[11px] font-bold transition shadow-2xs"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Nuevo Control</span>
+                  </button>
+                )}
+                {onStep5AddIndicator && (
+                  <button
+                    type="button"
+                    onClick={onStep5AddIndicator}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[11px] font-bold transition shadow-2xs"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Nuevo Indicador</span>
+                  </button>
+                )}
               </div>
             )}
 
@@ -478,9 +538,14 @@ export const NavigationLevels: React.FC<NavigationLevelsProps> = ({
                   <button
                     type="button"
                     onClick={onStep6ToggleSignatures}
-                    className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded-lg text-[11px] font-semibold transition"
+                    className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold border transition ${
+                      isSignaturesDrawerOpen
+                        ? 'bg-amber-100 text-amber-900 border-amber-400'
+                        : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300'
+                    }`}
                   >
-                    Firmas
+                    <PenTool className="w-3.5 h-3.5 text-amber-600" />
+                    <span>{isSignaturesDrawerOpen ? 'Cerrar Firmas' : 'Firmas'}</span>
                   </button>
                 )}
                 {onStep6ExportJSON && (
